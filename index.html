@@ -47,7 +47,8 @@
             flex: 1;
             min-height: 0;
         }
-        .calendar-section, .news-section {
+        .calendar-section {
+            flex: 2;
             background: white;
             border-radius: 10px;
             padding: 10px;
@@ -56,11 +57,15 @@
             flex-direction: column;
             overflow-y: auto;
         }
-        .calendar-section {
-            flex: 2;
-        }
         .news-section {
             flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
         .section-title {
             color: #2c3e50;
@@ -71,16 +76,25 @@
             align-items: center;
             gap: 8px;
         }
-        .news-item {
+        .news-container, .today-schedule {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .news-item, .event-item {
             margin-bottom: 8px;
             font-size: 16px;
         }
-        .news-item a {
+        .news-item a, .event-item {
             color: #3498db;
             text-decoration: none;
         }
         .news-item a:hover {
             text-decoration: underline;
+        }
+        .calendar-iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
@@ -93,18 +107,32 @@
 
         <div class="content-wrapper">
             <div class="calendar-section">
-                <h2 class="section-title">📅 Schedule & Holidays</h2>
-                <div class="calendar" id="calendar"></div>
+                <h2 class="section-title">📅 Monthly Schedule & Holidays</h2>
+                <iframe 
+                    class="calendar-iframe"
+                    src="https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&src=ko.south_korea%23holiday%40group.v.calendar.google.com&ctz=Asia%2FSeoul&mode=MONTH" 
+                    frameborder="0" 
+                    scrolling="no">
+                </iframe>
             </div>
 
             <div class="news-section">
-                <h2 class="section-title">📰 Today's News</h2>
-                <div class="news-container" id="news-container"></div>
+                <div class="today-schedule">
+                    <h2 class="section-title">📅 Today's Schedule</h2>
+                    <div id="today-events"></div>
+                </div>
+                <div class="news-container">
+                    <h2 class="section-title">📰 Tax-related News</h2>
+                    <div id="news-container"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        const apiKey = "AIzaSyBk3K41Abu-u2xn8591ERFUa2tc36gUXw0";
+        const calendarIdPersonal = "bbory.cpa@gmail.com";
+
         // 시간 업데이트 함수
         function updateTime() {
             const now = new Date();
@@ -120,17 +148,17 @@
             document.getElementById('current-time').textContent = now.toLocaleString('ko-KR', options);
         }
 
-        // Google 뉴스 RSS 피드로부터 최신 뉴스 로드 함수
+        // Google 뉴스에서 "세무" 키워드로 필터링된 뉴스 로드 함수
         function loadNews() {
             const newsContainer = document.getElementById("news-container");
-            const rssUrl = `https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko`;
+            const rssUrl = `https://news.google.com/rss/search?q=세무&hl=ko&gl=KR&ceid=KR:ko`;
             const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
 
             fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
                     let newsHTML = "";
-                    data.items.slice(0, 15).forEach(item => {
+                    data.items.slice(0, 10).forEach(item => { // 상위 10개 뉴스 표시
                         const title = item.title;
                         const link = item.link;
                         newsHTML += `<div class="news-item"><a href="${link}" target="_blank">${title}</a></div>`;
@@ -143,9 +171,36 @@
                 });
         }
 
+        // 오늘의 일정을 Google Calendar API에서 가져오는 함수
+        function loadTodayEvents() {
+            const todayEventsContainer = document.getElementById("today-events");
+            const today = new Date().toISOString().split("T")[0];
+            const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarIdPersonal}/events?key=${apiKey}&timeMin=${today}T00:00:00Z&timeMax=${today}T23:59:59Z&singleEvents=true&orderBy=startTime`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    let eventsHTML = "";
+                    if (data.items && data.items.length > 0) {
+                        data.items.forEach(event => {
+                            const eventTime = event.start.dateTime ? new Date(event.start.dateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : "All Day";
+                            eventsHTML += `<div class="event-item">${eventTime} - ${event.summary}</div>`;
+                        });
+                    } else {
+                        eventsHTML = "<p>오늘의 일정이 없습니다.</p>";
+                    }
+                    todayEventsContainer.innerHTML = eventsHTML;
+                })
+                .catch(error => {
+                    console.error("일정 로드 중 오류 발생:", error);
+                    todayEventsContainer.innerHTML = "<p>일정을 불러오는 데 실패했습니다.</p>";
+                });
+        }
+
         // 초기 로드 및 시간 업데이트 주기 설정
         updateTime();
         loadNews();
+        loadTodayEvents();
         setInterval(updateTime, 1000); // 1초마다 시간 업데이트
     </script>
 </body>
