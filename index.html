@@ -130,7 +130,7 @@
                 .then(response => response.json())
                 .then(data => {
                     let newsHTML = "";
-                    data.items.slice(0, 5).forEach(item => {
+                    data.items.slice(0, 15).forEach(item => {
                         const title = item.title;
                         const link = item.link;
                         newsHTML += `<div class="news-item"><a href="${link}" target="_blank">${title}</a></div>`;
