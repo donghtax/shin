@@ -11,21 +11,21 @@
             background: #f8f9fa;
         }
         .container {
-            max-width: 1400px; /* 더 넓게 조정 */
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 10px; /* 패딩 줄임 */
+            padding: 10px;
         }
         .header {
             background: #2c3e50;
             color: white;
-            padding: 15px; /* 패딩 줄임 */
+            padding: 15px;
             text-align: center;
             border-radius: 10px 10px 0 0;
-            margin-bottom: 10px; /* 마진 줄임 */
+            margin-bottom: 10px;
         }
         .company-name {
             font-size: 28px;
-            margin-bottom: 5px; /* 마진 줄임 */
+            margin-bottom: 5px;
         }
         .current-time {
             font-size: 20px;
@@ -34,7 +34,7 @@
         .content-section {
             background: white;
             border-radius: 10px;
-            padding: 10px; /* 패딩 줄임 */
+            padding: 10px;
             margin-bottom: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
@@ -42,11 +42,11 @@
             color: #2c3e50;
             border-bottom: 2px solid #3498db;
             padding-bottom: 5px;
-            margin: 0 0 10px 0; /* 마진 조정 */
+            margin: 0 0 10px 0;
         }
         .calendar-container {
             position: relative;
-            padding-bottom: 65%; /* 비율 조정 */
+            padding-bottom: 65%;
             height: 0;
             overflow: hidden;
             border-radius: 10px;
@@ -70,8 +70,8 @@
 
         <div class="content-section">
             <h2 class="section-title">📅 Schedule</h2>
-            <div class="calendar-container">
-                <iframe src="https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&ctz=Asia/Seoul&mode=MONTH&showTitle=0&showNav=1&showPrint=0&showTabs=1&showCalendars=0&showTz=0&height=800" style="border: 0" frameborder="0" scrolling="no"></iframe>
+            <div class="calendar-container" id="calendar-container">
+                <!-- 캘린더 iframe이 여기에 동적으로 삽입됩니다 -->
             </div>
         </div>
     </div>
@@ -91,14 +91,38 @@
             const timeString = now.toLocaleString('ko-KR', options);
             document.getElementById('current-time').textContent = timeString;
         }
+
+        function refreshCalendar() {
+            const container = document.getElementById('calendar-container');
+            const timestamp = new Date().getTime(); // 캐시 방지를 위한 타임스탬프
+            const calendarUrl = `https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&ctz=Asia/Seoul&mode=MONTH&showTitle=0&showNav=1&showPrint=0&showTabs=1&showCalendars=0&showTz=0&height=800&_=${timestamp}`;
+            
+            // 기존 iframe 제거
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+            
+            // 새로운 iframe 생성 및 추가
+            const iframe = document.createElement('iframe');
+            iframe.style.border = '0';
+            iframe.setAttribute('frameborder', '0');
+            iframe.setAttribute('scrolling', 'no');
+            iframe.src = calendarUrl;
+            container.appendChild(iframe);
+        }
         
+        // 초기 로드
+        refreshCalendar();
+        
+        // 시간 업데이트 (1초마다)
         setInterval(updateTime, 1000);
         updateTime();
 
-        // 30분마다 페이지 자동 새로고침
-        setInterval(() => {
-            location.reload();
-        }, 1800000);
+        // 캘린더 업데이트 (5분마다)
+        setInterval(refreshCalendar, 300000);
+
+        // 페이지가 포커스를 받을 때마다 캘린더 새로고침
+        window.onfocus = refreshCalendar;
     </script>
 </body>
 </html>
