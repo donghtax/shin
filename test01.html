@@ -47,7 +47,8 @@
             flex: 1;
             min-height: 0;
         }
-        .calendar-section, .news-section {
+        .calendar-section {
+            flex: 2;
             background: white;
             border-radius: 10px;
             padding: 10px;
@@ -56,11 +57,15 @@
             flex-direction: column;
             overflow-y: auto;
         }
-        .calendar-section {
-            flex: 2;
-        }
         .news-section {
             flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
         }
         .section-title {
             color: #2c3e50;
@@ -70,26 +75,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-        .event {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .holiday {
-            background-color: #ffcccc; /* 공휴일 빨간색 배경 */
-            color: #d32f2f;
-        }
-        .personal-event {
-            background-color: #cce5ff; /* 개인 일정 파란색 배경 */
-            color: #0056b3;
-        }
-        .event-title {
-            font-weight: bold;
-        }
-        .event-date {
-            font-size: 0.9em;
-            color: #555;
         }
         .news-item {
             margin-bottom: 8px;
@@ -102,6 +87,11 @@
         .news-item a:hover {
             text-decoration: underline;
         }
+        .calendar-iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
 <body>
@@ -113,12 +103,17 @@
 
         <div class="content-wrapper">
             <div class="calendar-section">
-                <h2 class="section-title">📅 Schedule & Holidays</h2>
-                <div class="calendar" id="calendar"></div>
+                <h2 class="section-title">📅 Monthly Schedule & Holidays</h2>
+                <iframe 
+                    class="calendar-iframe"
+                    src="https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&src=ko.south_korea%23holiday%40group.v.calendar.google.com&ctz=Asia%2FSeoul&mode=MONTH" 
+                    frameborder="0" 
+                    scrolling="no">
+                </iframe>
             </div>
 
             <div class="news-section">
-                <h2 class="section-title">📰 Today's News</h2>
+                <h2 class="section-title">📰 Tax-related News</h2>
                 <div class="news-container" id="news-container"></div>
             </div>
         </div>
@@ -140,10 +135,10 @@
             document.getElementById('current-time').textContent = now.toLocaleString('ko-KR', options);
         }
 
-        // Google 뉴스 RSS 피드로부터 최신 뉴스 로드 함수
+        // Google 뉴스에서 "세무" 키워드로 필터링된 뉴스 로드 함수
         function loadNews() {
             const newsContainer = document.getElementById("news-container");
-            const rssUrl = `https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko`;
+            const rssUrl = `https://news.google.com/rss/search?q=세무&hl=ko&gl=KR&ceid=KR:ko`;
             const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
 
             fetch(apiUrl)
@@ -163,48 +158,6 @@
                 });
         }
 
-        // Google Calendar API를 사용하여 일정 및 공휴일 가져오기
-        const apiKey = "AIzaSyAziifGnjNXxOVuokVOL82Q9O7xJMfk2qg"; // 구글 캘린더 API 키
-        const calendarIdPersonal = "bbory.cpa@gmail.com"; // 개인 캘린더 ID
-        const calendarIdHolidays = "ko.south_korea#holiday@group.v.calendar.google.com"; // 대한민국 공휴일 캘린더 ID
-        const calendarElement = document.getElementById("calendar");
-
-        async function fetchEvents(calendarId, className) {
-            const now = new Date().toISOString();
-            const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?key=${apiKey}&timeMin=${now}&singleEvents=true&orderBy=startTime`;
-            
-            const response = await fetch(url);
-            const data = await response.json();
-
-            if (data.items) {
-                data.items.forEach(event => {
-                    const eventElement = document.createElement("div");
-                    eventElement.className = `event ${className}`;
-
-                    const title = document.createElement("div");
-                    title.className = "event-title";
-                    title.textContent = event.summary;
-
-                    const date = document.createElement("div");
-                    date.className = "event-date";
-                    const eventDate = new Date(event.start.date || event.start.dateTime);
-                    date.textContent = eventDate.toLocaleDateString("ko-KR", {
-                        year: "numeric", month: "long", day: "numeric", weekday: "long"
-                    });
-
-                    eventElement.appendChild(title);
-                    eventElement.appendChild(date);
-                    calendarElement.appendChild(eventElement);
-                });
-            } else {
-                console.error("일정을 가져오는 데 실패했습니다:", data);
-            }
-        }
-
-        // 공휴일은 holiday 클래스를, 개인 일정은 personal-event 클래스를 사용하여 불러오기
-        fetchEvents(calendarIdHolidays, "holiday");
-        fetchEvents(calendarIdPersonal, "personal-event");
-
         // 초기 로드 및 시간 업데이트 주기 설정
         updateTime();
         loadNews();
@@ -212,4 +165,3 @@
     </script>
 </body>
 </html>
-
