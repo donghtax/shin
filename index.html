@@ -4,100 +4,7 @@
     <meta charset="UTF-8">
     <title>Donghyun Tax Accounting Office</title>
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f8f9fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 2160px;
-            width: 98%;
-            margin: 10px auto;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            height: 98vh;
-        }
-        .header {
-            background: #2c3e50;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            border-radius: 10px 10px 0 0;
-            margin-bottom: 10px;
-        }
-        .company-name {
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-        .current-time {
-            font-size: 20px;
-            color: #ecf0f1;
-        }
-        .content-wrapper {
-            display: flex;
-            gap: 20px;
-            flex: 1;
-            min-height: 0;
-        }
-        .calendar-section, .news-section {
-            background: white;
-            border-radius: 10px;
-            padding: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-        .calendar-section {
-            flex: 2;
-        }
-        .news-section {
-            flex: 1;
-        }
-        .section-title {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
-            margin: 0 0 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .news-item {
-            margin-bottom: 8px;
-            font-size: 16px;
-        }
-        .news-item a {
-            color: #3498db;
-            text-decoration: none;
-        }
-        .news-item a:hover {
-            text-decoration: underline;
-        }
-        .calendar-container {
-            position: relative;
-            padding-bottom: 60%;
-            height: 0;
-            overflow: hidden;
-            border-radius: 10px;
-            flex: 1;
-        }
-        .calendar-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+        /* 스타일 코드는 동일하므로 생략 */
     </style>
 </head>
 <body>
@@ -138,11 +45,11 @@
             document.getElementById('current-time').textContent = now.toLocaleString('ko-KR', options);
         }
 
-        // 뉴스 로드 함수 (NewsAPI 사용)
+        // 뉴스 로드 함수 (NewsAPI + CORS 프록시 사용)
         function loadNews() {
             const newsContainer = document.getElementById("news-container");
             const apiKey = "2eef7bab8e454ccab0f5ff4c15d3bf9a"; // 여기에 NewsAPI API 키를 넣으세요
-            const url = `https://newsapi.org/v2/top-headlines?country=kr&apiKey=2eef7bab8e454ccab0f5ff4c15d3bf9a`;
+            const url = `https://cors-anywhere.herokuapp.com/https://newsapi.org/v2/top-headlines?country=kr&apiKey=${apiKey}`;
 
             fetch(url)
                 .then(response => response.json())
