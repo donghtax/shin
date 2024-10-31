@@ -172,30 +172,33 @@
         }
 
         // 오늘의 일정을 Google Calendar API에서 가져오는 함수
-        function loadTodayEvents() {
-            const todayEventsContainer = document.getElementById("today-events");
-            const today = new Date().toISOString().split("T")[0];
-            const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarIdPersonal}/events?key=${apiKey}&timeMin=${today}T00:00:00Z&timeMax=${today}T23:59:59Z&singleEvents=true&orderBy=startTime`;
+function loadTodayEvents() {
+    const todayEventsContainer = document.getElementById("today-events");
+    const today = new Date();
+    const timeMin = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+    const timeMax = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarIdPersonal}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;
 
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    let eventsHTML = "";
-                    if (data.items && data.items.length > 0) {
-                        data.items.forEach(event => {
-                            const eventTime = event.start.dateTime ? new Date(event.start.dateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : "All Day";
-                            eventsHTML += `<div class="event-item">${eventTime} - ${event.summary}</div>`;
-                        });
-                    } else {
-                        eventsHTML = "<p>오늘의 일정이 없습니다.</p>";
-                    }
-                    todayEventsContainer.innerHTML = eventsHTML;
-                })
-                .catch(error => {
-                    console.error("일정 로드 중 오류 발생:", error);
-                    todayEventsContainer.innerHTML = "<p>일정을 불러오는 데 실패했습니다.</p>";
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            let eventsHTML = "";
+            if (data.items && data.items.length > 0) {
+                data.items.forEach(event => {
+                    const eventTime = event.start.dateTime ? new Date(event.start.dateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : "All Day";
+                    eventsHTML += `<div class="event-item">${eventTime} - ${event.summary}</div>`;
                 });
-        }
+            } else {
+                eventsHTML = "<p>오늘의 일정이 없습니다.</p>";
+            }
+            todayEventsContainer.innerHTML = eventsHTML;
+        })
+        .catch(error => {
+            console.error("일정 로드 중 오류 발생:", error);
+            todayEventsContainer.innerHTML = "<p>일정을 불러오는 데 실패했습니다.</p>";
+        });
+}
+
 
         // 초기 로드 및 시간 업데이트 주기 설정
         updateTime();
