@@ -158,21 +158,21 @@
             container.appendChild(iframe);
         }
 
-        // News API를 통한 뉴스 로드 함수
+        // 뉴스 로드 함수 (NewsAPI 사용)
         function loadNews() {
             const newsContainer = document.getElementById("news-container");
+            const apiKey = "YOUR_API_KEY"; // 여기에 API 키를 넣으세요
+            const url = `https://newsapi.org/v2/top-headlines?country=kr&apiKey=${apiKey}`;
 
-            fetch("https://newsapi.org/v2/top-headlines?country=kr&apiKey=YOUR_API_KEY")
+            fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     let newsHTML = "";
 
-                    data.articles.forEach((article, index) => {
-                        if (index < 5) {  // 상위 5개 뉴스만 표시
-                            const title = article.title;
-                            const link = article.url;
-                            newsHTML += `<div class="news-item"><a href="${link}" target="_blank">${title}</a></div>`;
-                        }
+                    data.articles.slice(0, 5).forEach((article) => { // 상위 5개 뉴스만 표시
+                        const title = article.title;
+                        const link = article.url;
+                        newsHTML += `<div class="news-item"><a href="${link}" target="_blank">${title}</a></div>`;
                     });
 
                     newsContainer.innerHTML = newsHTML;
