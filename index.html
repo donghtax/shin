@@ -140,7 +140,11 @@
         function refreshCalendar() {
             const container = document.getElementById('calendar-container');
             const timestamp = new Date().getTime();
-            const calendarUrl = `https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&ctz=Asia/Seoul&mode=MONTH&showTitle=0&showNav=1&showPrint=0&showTabs=1&showCalendars=0&showTz=0&height=800&_=${timestamp}`;
+            const calendarUrl = `
+                https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com
+                &src=ko.south_korea%23holiday%40group.v.calendar.google.com
+                &ctz=Asia/Seoul&mode=MONTH&showTitle=0&showNav=1&showPrint=0
+                &showTabs=1&showCalendars=0&showTz=0&height=800&_=${timestamp}`;
             
             while (container.firstChild) {
                 container.removeChild(container.firstChild);
