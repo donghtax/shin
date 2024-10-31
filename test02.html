@@ -1,1 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Donghyun Tax Accounting Office</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 2160px;
+            width: 98%;
+            margin: 10px auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 98vh;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 10px;
+        }
+        .company-name {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .current-time {
+            font-size: 20px;
+            color: #ecf0f1;
+        }
+        .content-wrapper {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            min-height: 0;
+        }
+        .calendar-section {
+            flex: 2;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .news-section {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .section-title {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .news-item {
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        .news-item a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .news-item a:hover {
+            text-decoration: underline;
+        }
+        .calendar-iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="company-name">Donghyun Tax Accounting Office</div>
+            <div class="current-time" id="current-time"></div>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="calendar-section">
+                <h2 class="section-title">📅 Monthly Schedule</h2>
+                <iframe 
+                    class="calendar-iframe"
+                    src="https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&ctz=Asia%2FSeoul&mode=MONTH" 
+                    frameborder="0" 
+                    scrolling="no">
+                </iframe>
+            </div>
+
+            <div class="news-section">
+                <h2 class="section-title">📰 Today's News</h2>
+                <div class="news-container" id="news-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 시간 업데이트 함수
+        function updateTime() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                weekday: 'long',
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            };
+            document.getElementById('current-time').textContent = now.toLocaleString('ko-KR', options);
+        }
+
+        // Google 뉴스 RSS 피드로부터 최신 뉴스 로드 함수
+        function loadNews() {
+            const newsContainer = document.getElementById("news-container");
+            const rssUrl = `https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko`;
+            const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    let newsHTML = "";
+                    data.items.slice(0, 15).forEach(item => { // 상위 15개 뉴스 표시
+                        const title = item.title;
+                        const link = item.link;
+                        newsHTML += `<div class="news-item"><a href="${link}" target="_blank">${title}</a></div>`;
+                    });
+                    newsContainer.innerHTML = newsHTML;
+                })
+                .catch(error => {
+                    console.error("뉴스 로드 중 오류 발생:", error);
+                    newsContainer.innerHTML = "<p>뉴스를 불러오는 데 실패했습니다.</p>";
+                });
+        }
+
+        // 초기 로드 및 시간 업데이트 주기 설정
+        updateTime();
+        loadNews();
+        setInterval(updateTime, 1000); // 1초마다 시간 업데이트
+    </script>
+</body>
+</html>
 
