@@ -61,6 +61,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 1.2em;
         }
         .calendar-container {
             position: relative;
@@ -79,36 +80,33 @@
         }
         .news-item {
             padding: 20px;
-            border-bottom: 1px solid #eee;
             transition: all 0.5s ease;
             display: none;
             opacity: 0;
             background: white;
-            height: 150px;
+            height: auto;
+            min-height: 200px;
             position: relative;
         }
         .news-item:first-child {
             display: block;
             opacity: 1;
         }
-        .news-item a {
-            text-decoration: none;
-            color: inherit;
-            display: block;
-            height: 100%;
-        }
         .news-title {
             font-size: 18px;
             line-height: 1.4;
             color: #2c3e50;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             font-weight: 600;
         }
         .news-summary {
             font-size: 14px;
             color: #666;
-            margin: 12px 0;
-            line-height: 1.5;
+            margin: 15px 0;
+            line-height: 1.6;
+            max-height: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .news-date {
             font-size: 12px;
@@ -142,8 +140,12 @@
             </div>
 
             <div class="news-section">
-                <h2 class="section-title">📰 국세청 소식</h2>
+                <h2 class="section-title">📰 오늘의 주요뉴스</h2>
                 <div id="news-container">
+                    <div class="news-item">
+                        <div class="news-title">뉴스를 불러오는 중입니다...</div>
+                        <div class="news-summary">잠시만 기다려 주세요.</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -182,50 +184,43 @@
             container.appendChild(iframe);
         }
 
-        function updateNews() {
-            const newsItems = [
-                {
-                    title: "국세청, 모범납세자 1만1000명 지정",
-                    summary: "국세청은 성실납세 문화 확산을 위해 모범납세자를 선정하고 다양한 혜택을 제공할 예정입니다.",
-                    link: "https://www.nts.go.kr/news/news_01.asp"
-                },
-                {
-                    title: "국세청, 체납자 은닉재산 첩보 최대 3억원 포상",
-                    summary: "국세청이 체납자의 은닉재산 신고에 대한 포상금을 최대 3억원까지 지급하기로 했습니다.",
-                    link: "https://www.nts.go.kr/news/news_01.asp"
-                },
-                {
-                    title: "종합소득세 중간예납세액 납부 안내",
-                    summary: "11월 종합소득세 중간예납세액 납부기한이 다가옵니다. 금년도 중간예납세액을 확인하세요.",
-                    link: "https://www.nts.go.kr/news/news_01.asp"
-                },
-                {
-                    title: "국세청, 간소화 서비스 대상 대폭 확대",
-                    summary: "연말정산 간소화 서비스가 확대되어 더 많은 항목을 조회할 수 있게 됩니다.",
-                    link: "https://www.nts.go.kr/news/news_01.asp"
-                },
-                {
-                    title: "국세청, 가상자산 거래분석 강화",
-                    summary: "국세청이 가상자산 거래 분석을 강화하여 공정한 과세기반을 마련합니다.",
-                    link: "https://www.nts.go.kr/news/news_01.asp"
-                }
-            ];
-
+        async function updateNews() {
+            const proxyUrl = 'https://api.allorigins.win/raw?url=';
+            const rssUrl = encodeURIComponent('https://news.naver.com/main/rss/today_main.xml');
+            
             try {
+                const response = await fetch(proxyUrl + rssUrl);
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                const items = xmlDoc.getElementsByTagName('item');
+                
                 const newsContainer = document.getElementById('news-container');
-                newsContainer.innerHTML = newsItems.map(news => `
-                    <div class="news-item">
-                        <a href="${news.link}" target="_blank" rel="noopener noreferrer">
-                            <div class="news-title">${news.title}</div>
-                            <div class="news-summary">${news.summary}</div>
-                            <div class="news-date">${new Date().toLocaleDateString('ko-KR', {
+                let newsHtml = '';
+                
+                // 최근 5개의 뉴스만 표시
+                for (let i = 0; i < Math.min(items.length, 5); i++) {
+                    const item = items[i];
+                    const title = item.getElementsByTagName('title')[0].textContent;
+                    const description = item.getElementsByTagName('description')[0].textContent;
+                    const pubDate = new Date(item.getElementsByTagName('pubDate')[0].textContent);
+                    
+                    newsHtml += `
+                        <div class="news-item">
+                            <div class="news-title">${title}</div>
+                            <div class="news-summary">${description}</div>
+                            <div class="news-date">${pubDate.toLocaleString('ko-KR', {
                                 year: 'numeric',
                                 month: '2-digit',
-                                day: '2-digit'
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
                             })}</div>
-                        </a>
-                    </div>
-                `).join('');
+                        </div>
+                    `;
+                }
+                
+                newsContainer.innerHTML = newsHtml;
 
                 // 뉴스 순환 시작
                 let currentIndex = 0;
@@ -245,18 +240,15 @@
                         }
                     });
                     currentIndex = (currentIndex + 1) % items.length;
-                }, 5000);
+                }, 7000); // 7초마다 뉴스 전환
 
             } catch (error) {
                 console.error('뉴스를 불러오는데 실패했습니다:', error);
                 const newsContainer = document.getElementById('news-container');
                 newsContainer.innerHTML = `
                     <div class="news-item" style="display:block; opacity:1;">
-                        <a href="https://www.nts.go.kr/news/news_01.asp" target="_blank" rel="noopener noreferrer">
-                            <div class="news-title">국세청 보도자료 바로가기</div>
-                            <div class="news-summary">자세한 내용은 국세청 홈페이지에서 확인하실 수 있습니다.</div>
-                            <div class="news-date">${new Date().toLocaleDateString('ko-KR')}</div>
-                        </a>
+                        <div class="news-title">뉴스를 불러올 수 없습니다</div>
+                        <div class="news-summary">잠시 후 다시 시도해 주세요.</div>
                     </div>
                 `;
             }
@@ -273,9 +265,13 @@
         // 캘린더 업데이트 (5분마다)
         setInterval(refreshCalendar, 300000);
 
+        // 뉴스 업데이트 (5분마다)
+        setInterval(updateNews, 300000);
+
         // 페이지가 포커스를 받을 때 업데이트
         window.onfocus = () => {
             refreshCalendar();
+            updateNews();
         };
     </script>
 </body>
