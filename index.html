@@ -50,8 +50,8 @@
             border-radius: 10px;
             padding: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            max-height: 800px;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         .section-title {
             color: #2c3e50;
@@ -61,7 +61,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 1.2em;
         }
         .calendar-container {
             position: relative;
@@ -78,50 +77,18 @@
             height: 100%;
             border: none;
         }
-        .news-item {
-            padding: 20px;
-            transition: all 0.5s ease;
-            display: none;
-            opacity: 0;
-            background: white;
-            height: auto;
-            min-height: 200px;
+        .news-container {
+            flex: 1;
             position: relative;
-        }
-        .news-item:first-child {
-            display: block;
-            opacity: 1;
-        }
-        .news-title {
-            font-size: 18px;
-            line-height: 1.4;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        .news-summary {
-            font-size: 14px;
-            color: #666;
-            margin: 15px 0;
-            line-height: 1.6;
-            max-height: 100px;
             overflow: hidden;
-            text-overflow: ellipsis;
         }
-        .news-date {
-            font-size: 12px;
-            color: #888;
+        .news-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
             position: absolute;
-            bottom: 20px;
-            left: 20px;
-        }
-        /* 스크롤바 제거 */
-        .news-section::-webkit-scrollbar {
-            display: none;
-        }
-        .news-section {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            top: 0;
+            left: 0;
         }
     </style>
 </head>
@@ -140,12 +107,14 @@
             </div>
 
             <div class="news-section">
-                <h2 class="section-title">📰 오늘의 주요뉴스</h2>
-                <div id="news-container">
-                    <div class="news-item">
-                        <div class="news-title">뉴스를 불러오는 중입니다...</div>
-                        <div class="news-summary">잠시만 기다려 주세요.</div>
-                    </div>
+                <h2 class="section-title">📰 Today's News</h2>
+                <div class="news-container">
+                    <iframe 
+                        class="news-iframe"
+                        src="https://m.news.naver.com/main/list.naver"
+                        frameborder="0"
+                        scrolling="yes">
+                    </iframe>
                 </div>
             </div>
         </div>
@@ -183,80 +152,9 @@
             iframe.src = calendarUrl;
             container.appendChild(iframe);
         }
-
-        async function updateNews() {
-            const proxyUrl = 'https://api.allorigins.win/raw?url=';
-            const rssUrl = encodeURIComponent('https://news.naver.com/main/rss/today_main.xml');
-            
-            try {
-                const response = await fetch(proxyUrl + rssUrl);
-                const xmlText = await response.text();
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-                const items = xmlDoc.getElementsByTagName('item');
-                
-                const newsContainer = document.getElementById('news-container');
-                let newsHtml = '';
-                
-                // 최근 5개의 뉴스만 표시
-                for (let i = 0; i < Math.min(items.length, 5); i++) {
-                    const item = items[i];
-                    const title = item.getElementsByTagName('title')[0].textContent;
-                    const description = item.getElementsByTagName('description')[0].textContent;
-                    const pubDate = new Date(item.getElementsByTagName('pubDate')[0].textContent);
-                    
-                    newsHtml += `
-                        <div class="news-item">
-                            <div class="news-title">${title}</div>
-                            <div class="news-summary">${description}</div>
-                            <div class="news-date">${pubDate.toLocaleString('ko-KR', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}</div>
-                        </div>
-                    `;
-                }
-                
-                newsContainer.innerHTML = newsHtml;
-
-                // 뉴스 순환 시작
-                let currentIndex = 0;
-                setInterval(() => {
-                    const items = document.querySelectorAll('.news-item');
-                    items.forEach((item, index) => {
-                        if (index === currentIndex) {
-                            item.style.display = 'block';
-                            setTimeout(() => {
-                                item.style.opacity = '1';
-                            }, 50);
-                        } else {
-                            item.style.opacity = '0';
-                            setTimeout(() => {
-                                item.style.display = 'none';
-                            }, 500);
-                        }
-                    });
-                    currentIndex = (currentIndex + 1) % items.length;
-                }, 7000); // 7초마다 뉴스 전환
-
-            } catch (error) {
-                console.error('뉴스를 불러오는데 실패했습니다:', error);
-                const newsContainer = document.getElementById('news-container');
-                newsContainer.innerHTML = `
-                    <div class="news-item" style="display:block; opacity:1;">
-                        <div class="news-title">뉴스를 불러올 수 없습니다</div>
-                        <div class="news-summary">잠시 후 다시 시도해 주세요.</div>
-                    </div>
-                `;
-            }
-        }
         
         // 초기 로드
         refreshCalendar();
-        updateNews();
         
         // 시간 업데이트 (1초마다)
         setInterval(updateTime, 1000);
@@ -265,13 +163,9 @@
         // 캘린더 업데이트 (5분마다)
         setInterval(refreshCalendar, 300000);
 
-        // 뉴스 업데이트 (5분마다)
-        setInterval(updateNews, 300000);
-
         // 페이지가 포커스를 받을 때 업데이트
         window.onfocus = () => {
             refreshCalendar();
-            updateNews();
         };
     </script>
 </body>
