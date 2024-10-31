@@ -11,7 +11,7 @@
             background: #f8f9fa;
         }
         .container {
-            max-width: 2160px; /* 20% 증가된 크기 */
+            max-width: 2160px;
             margin: 0 auto;
             padding: 10px;
             display: flex;
@@ -58,6 +58,9 @@
             border-bottom: 2px solid #3498db;
             padding-bottom: 5px;
             margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .calendar-container {
             position: relative;
@@ -77,10 +80,11 @@
         .news-item {
             padding: 15px;
             border-bottom: 1px solid #eee;
-            transition: background-color 0.2s;
+            transition: all 0.2s ease;
         }
         .news-item:hover {
-            background-color: #f5f9ff;
+            background-color: #f8f9fa;
+            transform: translateX(5px);
         }
         .news-item:last-child {
             border-bottom: none;
@@ -91,20 +95,16 @@
             display: block;
         }
         .news-title {
-            font-size: 16px;
-            color: #2c3e50;
-            margin-bottom: 5px;
-            font-weight: bold;
+            font-size: 15px;
             line-height: 1.4;
-        }
-        .news-title:hover {
-            color: #3498db;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-weight: 500;
         }
         .news-date {
             font-size: 12px;
-            color: #7f8c8d;
+            color: #666;
         }
-        /* 스크롤바 스타일링 */
         .news-section::-webkit-scrollbar {
             width: 8px;
         }
@@ -118,6 +118,11 @@
         }
         .news-section::-webkit-scrollbar-thumb:hover {
             background: #a0aec0;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
         }
     </style>
 </head>
@@ -136,11 +141,9 @@
             </div>
 
             <div class="news-section">
-                <h2 class="section-title">📰 Tax News</h2>
+                <h2 class="section-title">📰 국세청 소식</h2>
                 <div id="news-container">
-                    <div class="news-item">
-                        <div class="news-title">뉴스를 불러오는 중입니다...</div>
-                    </div>
+                    <div class="loading">뉴스를 불러오는 중입니다...</div>
                 </div>
             </div>
         </div>
@@ -180,34 +183,50 @@
         }
 
         async function updateNews() {
-            const rssUrl = 'https://news.google.com/rss/search?q=세무 국세청 when:1d&hl=ko&gl=KR&ceid=KR:ko';
-            const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+            const proxyUrl = 'https://api.allorigins.win/raw?url=';
+            const rssUrl = encodeURIComponent('https://www.nts.go.kr/rss/nts_news_01.xml');
             
             try {
-                const response = await fetch(apiUrl);
-                const data = await response.json();
+                const response = await fetch(proxyUrl + rssUrl);
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                const items = xmlDoc.getElementsByTagName('item');
                 
                 const newsContainer = document.getElementById('news-container');
-                newsContainer.innerHTML = data.items.slice(0, 5).map(news => `
-                    <div class="news-item">
-                        <a href="${news.link}" target="_blank" rel="noopener noreferrer">
-                            <div class="news-title">${news.title}</div>
-                            <div class="news-date">${new Date(news.pubDate).toLocaleString('ko-KR', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}</div>
-                        </a>
-                    </div>
-                `).join('');
+                let newsHtml = '';
+                
+                // 최근 5개의 뉴스만 표시
+                for (let i = 0; i < Math.min(items.length, 5); i++) {
+                    const item = items[i];
+                    const title = item.getElementsByTagName('title')[0].textContent;
+                    const link = item.getElementsByTagName('link')[0].textContent;
+                    const pubDate = new Date(item.getElementsByTagName('pubDate')[0].textContent);
+                    
+                    newsHtml += `
+                        <div class="news-item">
+                            <a href="${link}" target="_blank" rel="noopener noreferrer">
+                                <div class="news-title">${title}</div>
+                                <div class="news-date">${pubDate.toLocaleString('ko-KR', {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit'
+                                })}</div>
+                            </a>
+                        </div>
+                    `;
+                }
+                
+                newsContainer.innerHTML = newsHtml;
             } catch (error) {
                 console.error('뉴스를 불러오는데 실패했습니다:', error);
                 const newsContainer = document.getElementById('news-container');
                 newsContainer.innerHTML = `
                     <div class="news-item">
-                        <div class="news-title">뉴스를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.</div>
+                        <a href="https://www.nts.go.kr/news/news_01.asp" target="_blank" rel="noopener noreferrer">
+                            <div class="news-title">국세청 보도자료 바로가기</div>
+                            <div class="news-date">${new Date().toLocaleDateString('ko-KR')}</div>
+                        </a>
                     </div>
                 `;
             }
