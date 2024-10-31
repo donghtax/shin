@@ -154,11 +154,11 @@
             container.appendChild(iframe);
         }
 
-        // RSS 피드로 뉴스 로드 함수
+        // RSS 피드로 뉴스 로드 함수 (CORS 프록시 사용)
         function loadNews() {
             const newsContainer = document.getElementById("news-container");
 
-            fetch("https://news.google.com/news/rss?hl=ko&gl=KR&ceid=KR:ko")
+            fetch("https://cors-anywhere.herokuapp.com/https://news.google.com/news/rss?hl=ko&gl=KR&ceid=KR:ko")
                 .then(response => response.text())
                 .then(data => {
                     const parser = new DOMParser();
