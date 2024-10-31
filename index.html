@@ -14,15 +14,29 @@
             justify-content: center;
             align-items: center;
         }
-        .container {
-            max-width: 2160px;
-            width: 95%;
-            margin: 20px auto;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            height: 95vh;
-        }
+.container {
+    max-width: 2160px;
+    width: 98%; /* 95%에서 98%로 증가 */
+    margin: 10px auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    height: 98vh; /* 95vh에서 98vh로 증가 */
+}
+
+/* html, body 스타일도 수정 */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
         .header {
             background: #2c3e50;
             color: white;
