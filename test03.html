@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -65,7 +65,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            overflow-y: auto;
+            gap: 10px;
         }
         .section-title {
             color: #2c3e50;
@@ -76,11 +76,15 @@
             align-items: center;
             gap: 8px;
         }
-        .news-item {
+        .news-container, .today-schedule {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .news-item, .event-item {
             margin-bottom: 8px;
             font-size: 16px;
         }
-        .news-item a {
+        .news-item a, .event-item {
             color: #3498db;
             text-decoration: none;
         }
@@ -104,22 +108,32 @@
         <div class="content-wrapper">
             <div class="calendar-section">
                 <h2 class="section-title">📅 Monthly Schedule & Holidays</h2>
-                <iframe 
-                    class="calendar-iframe"
-                    src="https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&src=ko.south_korea%23holiday%40group.v.calendar.google.com&ctz=Asia%2FSeoul&mode=MONTH" 
-                    frameborder="0" 
-                    scrolling="no">
-                </iframe>
+<iframe 
+    class="calendar-iframe"
+    src="https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&src=ko.south_korea%23holiday%40group.v.calendar.google.com&color=%23FF0000&src=8a4b3ad9ffdb68663b95a1a263441e4a5f3fe06775cdd31c729191a93cf18f58%40group.calendar.google.com&color=%23008000&wkst=1&bgcolor=%23ffffff&ctz=Asia%2FSeoul&mode=MONTH" 
+    frameborder="0" 
+    scrolling="no">
+</iframe>
             </div>
 
             <div class="news-section">
-                <h2 class="section-title">📰 Tax-related News</h2>
-                <div class="news-container" id="news-container"></div>
+                <div class="today-schedule">
+                    <h2 class="section-title">📅 Today's Schedule</h2>
+                    <div id="today-events"></div>
+                </div>
+                <div class="news-container">
+                    <h2 class="section-title">📰 Tax-related News</h2>
+                    <div id="news-container"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        const apiKey = "AIzaSyBk3K41Abu-u2xn8591ERFUa2tc36gUXw0";
+        const calendarIdPersonal = "bbory.cpa@gmail.com";
+        const calendarIdTax = "8a4b3ad9ffdb68663b95a1a263441e4a5f3fe06775cdd31c729191a93cf18f58@group.calendar.google.com";
+
         // 시간 업데이트 함수
         function updateTime() {
             const now = new Date();
@@ -135,27 +149,21 @@
             document.getElementById('current-time').textContent = now.toLocaleString('ko-KR', options);
         }
 
-        // XML 방식으로 RSS 피드를 직접 가져와서 파싱하는 함수
+        // Google 뉴스에서 "세무" 키워드로 필터링된 뉴스 로드 함수
         function loadNews() {
             const newsContainer = document.getElementById("news-container");
             const rssUrl = `https://news.google.com/rss/search?q=세무&hl=ko&gl=KR&ceid=KR:ko`;
+            const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
 
-            fetch(rssUrl)
-                .then(response => response.text())
+            fetch(apiUrl)
+                .then(response => response.json())
                 .then(data => {
-                    const parser = new DOMParser();
-                    const xml = parser.parseFromString(data, "application/xml");
-                    const items = xml.querySelectorAll("item");
                     let newsHTML = "";
-
-                    items.forEach((item, index) => {
-                        if (index < 15) { // 상위 15개 뉴스 표시
-                            const title = item.querySelector("title").textContent;
-                            const link = item.querySelector("link").textContent;
-                            newsHTML += `<div class="news-item"><a href="${link}" target="_blank">${title}</a></div>`;
-                        }
+                    data.items.slice(0, 10).forEach(item => { // 상위 10개 뉴스 표시
+                        const title = item.title;
+                        const link = item.link;
+                        newsHTML += `<div class="news-item"><a href="${link}" target="_blank">${title}</a></div>`;
                     });
-
                     newsContainer.innerHTML = newsHTML;
                 })
                 .catch(error => {
@@ -164,11 +172,65 @@
                 });
         }
 
+        // 오늘의 일정을 두 개의 캘린더에서 불러오는 함수
+function loadTodayEvents() {
+    const todayEventsContainer = document.getElementById("today-events");
+    const today = new Date();
+    const timeMin = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+    const timeMax = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+
+    // 캘린더 정보를 배열로 관리
+    const calendars = [
+        { id: calendarIdPersonal, name: 'Personal' },
+        { id: calendarIdTax, name: 'Tax Calendar' },
+        { id: 'ko.south_korea#holiday@group.v.calendar.google.com', name: 'Holidays' }
+    ];
+
+    // 모든 캘린더의 이벤트를 가져오기
+    Promise.all(calendars.map(calendar => 
+        fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendar.id)}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`)
+            .then(response => response.json())
+            .then(data => ({ ...data, calendarName: calendar.name }))
+            .catch(error => {
+                console.error(`Error fetching ${calendar.name} calendar:`, error);
+                return { items: [], calendarName: calendar.name };
+            })
+    ))
+    .then(results => {
+        let eventsHTML = "";
+        let hasEvents = false;
+
+        results.forEach(data => {
+            if (data.items && data.items.length > 0) {
+                hasEvents = true;
+                data.items.forEach(event => {
+                    const eventTime = event.start.dateTime 
+                        ? new Date(event.start.dateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) 
+                        : "종일";
+                    eventsHTML += `
+                        <div class="event-item">
+                            <strong>${eventTime}</strong> - ${event.summary} 
+                            <span style="color: #666; font-size: 0.9em">(${data.calendarName})</span>
+                        </div>`;
+                });
+            }
+        });
+
+        todayEventsContainer.innerHTML = hasEvents 
+            ? eventsHTML 
+            : "<p>오늘의 일정이 없습니다.</p>";
+    })
+    .catch(error => {
+        console.error("일정 로드 중 오류 발생:", error);
+        todayEventsContainer.innerHTML = "<p>일정을 불러오는 데 실패했습니다.</p>";
+    });
+}
+
         // 초기 로드 및 시간 업데이트 주기 설정
         updateTime();
         loadNews();
+        loadTodayEvents();
         setInterval(updateTime, 1000); // 1초마다 시간 업데이트
     </script>
 </body>
 </html>
-
