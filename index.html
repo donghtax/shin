@@ -1,32 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <title>Donghyun Tax Accounting Office</title>
     <style>
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background: #f8f9fa;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-}
-.container {
-    max-width: 2160px;
-    width: 98%; /* 95%에서 98%로 증가 */
-    margin: 10px auto;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    height: 98vh; /* 95vh에서 98vh로 증가 */
-}
-
-
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 2160px;
+            width: 98%;
+            margin: 10px auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 98vh;
+        }
         .header {
             background: #2c3e50;
             color: white;
@@ -47,25 +45,22 @@ html, body {
             display: flex;
             gap: 20px;
             flex: 1;
-            min-height: 0; /* 중요: flex container 내부 스크롤을 위해 필요 */
+            min-height: 0;
+        }
+        .calendar-section, .news-section {
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
         }
         .calendar-section {
             flex: 2;
-            background: white;
-            border-radius: 10px;
-            padding: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
         }
         .news-section {
             flex: 1;
-            background: white;
-            border-radius: 10px;
-            padding: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
         }
         .section-title {
             color: #2c3e50;
@@ -75,6 +70,17 @@ html, body {
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+        .news-item {
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        .news-item a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .news-item a:hover {
+            text-decoration: underline;
         }
         .calendar-container {
             position: relative;
@@ -92,17 +98,6 @@ html, body {
             height: 100%;
             border: none;
         }
-        .news-container {
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-            border-radius: 10px;
-        }
-        .news-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
     </style>
 </head>
 <body>
@@ -115,25 +110,18 @@ html, body {
         <div class="content-wrapper">
             <div class="calendar-section">
                 <h2 class="section-title">📅 Schedule</h2>
-                <div class="calendar-container" id="calendar-container">
-                </div>
+                <div class="calendar-container" id="calendar-container"></div>
             </div>
 
             <div class="news-section">
                 <h2 class="section-title">📰 Today's News</h2>
-                <div class="news-container">
-                    <iframe 
-                        class="news-iframe"
-                        src="https://news.google.com/news/rss?hl=ko&gl=KR&ceid=KR:ko"
-                        frameborder="0"
-                        scrolling="yes">
-                    </iframe>
-                </div>
+                <div class="news-container" id="news-container"></div>
             </div>
         </div>
     </div>
 
     <script>
+        // 시간 업데이트 함수
         function updateTime() {
             const now = new Date();
             const options = { 
@@ -145,10 +133,10 @@ html, body {
                 minute: '2-digit', 
                 second: '2-digit' 
             };
-            const timeString = now.toLocaleString('ko-KR', options);
-            document.getElementById('current-time').textContent = timeString;
+            document.getElementById('current-time').textContent = now.toLocaleString('ko-KR', options);
         }
 
+        // 구글 캘린더 리프레시 함수
         function refreshCalendar() {
             const container = document.getElementById('calendar-container');
             const timestamp = new Date().getTime();
@@ -165,21 +153,41 @@ html, body {
             iframe.src = calendarUrl;
             container.appendChild(iframe);
         }
-        
-        // 초기 로드
-        refreshCalendar();
-        
-        // 시간 업데이트 (1초마다)
-        setInterval(updateTime, 1000);
+
+        // RSS 피드로 뉴스 로드 함수
+        function loadNews() {
+            const newsContainer = document.getElementById("news-container");
+
+            fetch("https://news.google.com/news/rss?hl=ko&gl=KR&ceid=KR:ko")
+                .then(response => response.text())
+                .then(data => {
+                    const parser = new DOMParser();
+                    const xml = parser.parseFromString(data, "application/xml");
+                    const items = xml.querySelectorAll("item");
+                    let newsHTML = "";
+
+                    items.forEach((item, index) => {
+                        if (index < 5) {  // 상위 5개 뉴스만 표시
+                            const title = item.querySelector("title").textContent;
+                            const link = item.querySelector("link").textContent;
+                            newsHTML += `<div class="news-item"><a href="${link}" target="_blank">${title}</a></div>`;
+                        }
+                    });
+
+                    newsContainer.innerHTML = newsHTML;
+                })
+                .catch(error => {
+                    console.error("뉴스 로드 중 오류 발생:", error);
+                    newsContainer.innerHTML = "<p>뉴스를 불러오는 데 실패했습니다.</p>";
+                });
+        }
+
+        // 초기 로드 및 업데이트 주기 설정
         updateTime();
-
-        // 캘린더 업데이트 (5분마다)
-        setInterval(refreshCalendar, 300000);
-
-        // 페이지가 포커스를 받을 때 업데이트
-        window.onfocus = () => {
-            refreshCalendar();
-        };
+        refreshCalendar();
+        loadNews();
+        setInterval(updateTime, 1000); // 1초마다 시간 업데이트
+        setInterval(refreshCalendar, 300000); // 5분마다 캘린더 업데이트
     </script>
 </body>
 </html>
