@@ -179,31 +179,51 @@ function loadTodayEvents() {
     const timeMin = new Date(today.setHours(0, 0, 0, 0)).toISOString();
     const timeMax = new Date(today.setHours(23, 59, 59, 999)).toISOString();
 
-    const urls = [
-        `https://www.googleapis.com/calendar/v3/calendars/${calendarIdPersonal}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
-        `https://www.googleapis.com/calendar/v3/calendars/${calendarIdTax}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`
+    // 캘린더 정보를 배열로 관리
+    const calendars = [
+        { id: calendarIdPersonal, name: 'Personal' },
+        { id: calendarIdTax, name: 'Tax Calendar' },
+        { id: 'ko.south_korea#holiday@group.v.calendar.google.com', name: 'Holidays' }
     ];
 
-    Promise.all(urls.map(url => fetch(url).then(response => response.json())))
-        .then(results => {
-            let eventsHTML = "";
-            results.forEach((data, index) => {
-                if (data.items && data.items.length > 0) {
-                    data.items.forEach(event => {
-                        const eventTime = event.start.dateTime ? new Date(event.start.dateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : "All Day";
-                        eventsHTML += `<div class="event-item">${eventTime} - ${event.summary} (${index === 0 ? 'Personal' : 'Tax Calendar'})</div>`;
-                    });
-                }
-            });
-            if (!eventsHTML) {
-                eventsHTML = "<p>오늘의 일정이 없습니다.</p>";
+    // 모든 캘린더의 이벤트를 가져오기
+    Promise.all(calendars.map(calendar => 
+        fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendar.id)}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`)
+            .then(response => response.json())
+            .then(data => ({ ...data, calendarName: calendar.name }))
+            .catch(error => {
+                console.error(`Error fetching ${calendar.name} calendar:`, error);
+                return { items: [], calendarName: calendar.name };
+            })
+    ))
+    .then(results => {
+        let eventsHTML = "";
+        let hasEvents = false;
+
+        results.forEach(data => {
+            if (data.items && data.items.length > 0) {
+                hasEvents = true;
+                data.items.forEach(event => {
+                    const eventTime = event.start.dateTime 
+                        ? new Date(event.start.dateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) 
+                        : "종일";
+                    eventsHTML += `
+                        <div class="event-item">
+                            <strong>${eventTime}</strong> - ${event.summary} 
+                            <span style="color: #666; font-size: 0.9em">(${data.calendarName})</span>
+                        </div>`;
+                });
             }
-            todayEventsContainer.innerHTML = eventsHTML;
-        })
-        .catch(error => {
-            console.error("일정 로드 중 오류 발생:", error);
-            todayEventsContainer.innerHTML = "<p>일정을 불러오는 데 실패했습니다.</p>";
         });
+
+        todayEventsContainer.innerHTML = hasEvents 
+            ? eventsHTML 
+            : "<p>오늘의 일정이 없습니다.</p>";
+    })
+    .catch(error => {
+        console.error("일정 로드 중 오류 발생:", error);
+        todayEventsContainer.innerHTML = "<p>일정을 불러오는 데 실패했습니다.</p>";
+    });
 }
 
         // 초기 로드 및 시간 업데이트 주기 설정
