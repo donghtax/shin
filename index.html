@@ -158,22 +158,19 @@
             container.appendChild(iframe);
         }
 
-        // RSS 피드로 뉴스 로드 함수 (CORS 프록시 사용)
+        // News API를 통한 뉴스 로드 함수
         function loadNews() {
             const newsContainer = document.getElementById("news-container");
 
-            fetch("https://cors-anywhere.herokuapp.com/https://news.google.com/news/rss?hl=ko&gl=KR&ceid=KR:ko")
-                .then(response => response.text())
+            fetch("https://newsapi.org/v2/top-headlines?country=kr&apiKey=YOUR_API_KEY")
+                .then(response => response.json())
                 .then(data => {
-                    const parser = new DOMParser();
-                    const xml = parser.parseFromString(data, "application/xml");
-                    const items = xml.querySelectorAll("item");
                     let newsHTML = "";
 
-                    items.forEach((item, index) => {
+                    data.articles.forEach((article, index) => {
                         if (index < 5) {  // 상위 5개 뉴스만 표시
-                            const title = item.querySelector("title").textContent;
-                            const link = item.querySelector("link").textContent;
+                            const title = article.title;
+                            const link = article.url;
                             newsHTML += `<div class="news-item"><a href="${link}" target="_blank">${title}</a></div>`;
                         }
                     });
