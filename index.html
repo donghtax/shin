@@ -2,134 +2,93 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Donghyun Tax Accounting Office</title>
+    <title>Custom Calendar with Holidays</title>
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f8f9fa;
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
+            margin: 0;
         }
-        .container {
-            max-width: 2160px;
-            width: 98%;
-            margin: 10px auto;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            height: 98vh;
-        }
-        .header {
-            background: #2c3e50;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            border-radius: 10px 10px 0 0;
-            margin-bottom: 10px;
-        }
-        .company-name {
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-        .current-time {
-            font-size: 20px;
-            color: #ecf0f1;
-        }
-        .content-wrapper {
-            display: flex;
-            gap: 20px;
-            flex: 1;
-            min-height: 0;
-        }
-        .calendar-section, .news-section {
-            background: white;
-            border-radius: 10px;
-            padding: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-        .calendar-section {
-            flex: 2;
-        }
-        .news-section {
-            flex: 1;
-        }
-        .section-title {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
-            margin: 0 0 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .calendar-container {
-            position: relative;
-            padding-bottom: 60%;
-            height: 0;
-            overflow: hidden;
-            border-radius: 10px;
-            flex: 1;
-        }
-        .calendar-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .calendar {
+            max-width: 600px;
             width: 100%;
-            height: 100%;
-            border: none;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .event {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .holiday {
+            background-color: #ffcccc; /* 공휴일 빨간색 배경 */
+            color: #d32f2f;
+        }
+        .personal-event {
+            background-color: #cce5ff; /* 개인 일정 파란색 배경 */
+            color: #0056b3;
+        }
+        .event-title {
+            font-weight: bold;
+        }
+        .event-date {
+            font-size: 0.9em;
+            color: #555;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="company-name">Donghyun Tax Accounting Office</div>
-            <div class="current-time" id="current-time"></div>
-        </div>
-
-        <div class="content-wrapper">
-            <div class="calendar-section">
-                <h2 class="section-title">📅 Schedule & Holidays</h2>
-                <div class="calendar-container">
-                    <iframe src="https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&src=ko.south_korea%23holiday%40group.v.calendar.google.com&ctz=Asia%2FSeoul&mode=MONTH" frameborder="0" scrolling="no"></iframe>
-                </div>
-            </div>
-
-            <div class="news-section">
-                <h2 class="section-title">📰 Today's News</h2>
-                <div class="news-container" id="news-container"></div>
-            </div>
-        </div>
+    <div class="calendar" id="calendar">
+        <h2>Schedule & Holidays</h2>
     </div>
 
     <script>
-        // 시간 업데이트 함수
-        function updateTime() {
-            const now = new Date();
-            const options = { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric', 
-                weekday: 'long',
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit' 
-            };
-            document.getElementById('current-time').textContent = now.toLocaleString('ko-KR', options);
+        const apiKey = "AIzaSyAziifGnjNXxOVuokVOL82Q9O7xJMfk2qg"; // 발급받은 API 키
+        const calendarIdPersonal = "bbory.cpa@gmail.com"; // 개인 캘린더 ID
+        const calendarIdHolidays = "ko.south_korea#holiday@group.v.calendar.google.com"; // 대한민국 공휴일 캘린더 ID
+        const calendarElement = document.getElementById("calendar");
+
+        async function fetchEvents(calendarId, className) {
+            const now = new Date().toISOString();
+            const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?key=${apiKey}&timeMin=${now}&singleEvents=true&orderBy=startTime`;
+            
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.items) {
+                data.items.forEach(event => {
+                    const eventElement = document.createElement("div");
+                    eventElement.className = `event ${className}`;
+
+                    const title = document.createElement("div");
+                    title.className = "event-title";
+                    title.textContent = event.summary;
+
+                    const date = document.createElement("div");
+                    date.className = "event-date";
+                    const eventDate = new Date(event.start.date || event.start.dateTime);
+                    date.textContent = eventDate.toLocaleDateString("ko-KR", {
+                        year: "numeric", month: "long", day: "numeric", weekday: "long"
+                    });
+
+                    eventElement.appendChild(title);
+                    eventElement.appendChild(date);
+                    calendarElement.appendChild(eventElement);
+                });
+            } else {
+                console.error("일정을 가져오는 데 실패했습니다:", data);
+            }
         }
 
-        // 초기 로드 및 시간 업데이트 주기 설정
-        updateTime();
-        setInterval(updateTime, 1000); // 1초마다 시간 업데이트
+        // 공휴일은 holiday 클래스를, 개인 일정은 personal-event 클래스를 사용하여 불러오기
+        fetchEvents(calendarIdHolidays, "holiday");
+        fetchEvents(calendarIdPersonal, "personal-event");
     </script>
 </body>
 </html>
