@@ -71,26 +71,6 @@
             align-items: center;
             gap: 8px;
         }
-        .event {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .holiday {
-            background-color: #ffcccc; /* 공휴일 빨간색 배경 */
-            color: #d32f2f;
-        }
-        .personal-event {
-            background-color: #cce5ff; /* 개인 일정 파란색 배경 */
-            color: #0056b3;
-        }
-        .event-title {
-            font-weight: bold;
-        }
-        .event-date {
-            font-size: 0.9em;
-            color: #555;
-        }
         .news-item {
             margin-bottom: 8px;
             font-size: 16px;
@@ -140,65 +120,21 @@
             document.getElementById('current-time').textContent = now.toLocaleString('ko-KR', options);
         }
 
-        // Google Calendar API를 사용하여 일정 및 공휴일 가져오기
-        const apiKey = "AIzaSyAziifGnjNXxOVuokVOL82Q9O7xJMfk2qg"; // 구글 캘린더 API 키
-        const calendarIdPersonal = "bbory.cpa@gmail.com"; // 개인 캘린더 ID
-        const calendarIdHolidays = "ko.south_korea#holiday@group.v.calendar.google.com"; // 대한민국 공휴일 캘린더 ID
-        const calendarElement = document.getElementById("calendar");
-
-        async function fetchEvents(calendarId, className) {
-            const now = new Date().toISOString();
-            const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?key=${apiKey}&timeMin=${now}&singleEvents=true&orderBy=startTime`;
-            
-            const response = await fetch(url);
-            const data = await response.json();
-
-            if (data.items) {
-                data.items.forEach(event => {
-                    const eventElement = document.createElement("div");
-                    eventElement.className = `event ${className}`;
-
-                    const title = document.createElement("div");
-                    title.className = "event-title";
-                    title.textContent = event.summary;
-
-                    const date = document.createElement("div");
-                    date.className = "event-date";
-                    const eventDate = new Date(event.start.date || event.start.dateTime);
-                    date.textContent = eventDate.toLocaleDateString("ko-KR", {
-                        year: "numeric", month: "long", day: "numeric", weekday: "long"
-                    });
-
-                    eventElement.appendChild(title);
-                    eventElement.appendChild(date);
-                    calendarElement.appendChild(eventElement);
-                });
-            } else {
-                console.error("일정을 가져오는 데 실패했습니다:", data);
-            }
-        }
-
-        // 공휴일은 holiday 클래스를, 개인 일정은 personal-event 클래스를 사용하여 불러오기
-        fetchEvents(calendarIdHolidays, "holiday");
-        fetchEvents(calendarIdPersonal, "personal-event");
-
-        // 뉴스 API 사용
+        // Google 뉴스 RSS 피드로부터 최신 뉴스 로드 함수
         function loadNews() {
             const newsContainer = document.getElementById("news-container");
-            const apiKey = "2eef7bab8e454ccab0f5ff4c15d3bf9a"; // NewsAPI API 키
-            const url = `https://newsapi.org/v2/top-headlines?country=kr&apiKey=${apiKey}`;
+            const rssUrl = `https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko`;
+            const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
 
-            fetch(url)
+            fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
                     let newsHTML = "";
-
-                    data.articles.slice(0, 5).forEach((article) => { // 상위 5개 뉴스만 표시
-                        const title = article.title;
-                        const link = article.url;
+                    data.items.slice(0, 5).forEach(item => {
+                        const title = item.title;
+                        const link = item.link;
                         newsHTML += `<div class="news-item"><a href="${link}" target="_blank">${title}</a></div>`;
                     });
-
                     newsContainer.innerHTML = newsHTML;
                 })
                 .catch(error => {
@@ -207,7 +143,7 @@
                 });
         }
 
-        // 초기 로드 및 업데이트 주기 설정
+        // 초기 로드 및 시간 업데이트 주기 설정
         updateTime();
         loadNews();
         setInterval(updateTime, 1000); // 1초마다 시간 업데이트
