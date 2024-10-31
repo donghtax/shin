@@ -4,7 +4,89 @@
     <meta charset="UTF-8">
     <title>Donghyun Tax Accounting Office</title>
     <style>
-        /* 스타일 코드는 동일하므로 생략 */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 2160px;
+            width: 98%;
+            margin: 10px auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 98vh;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 10px;
+        }
+        .company-name {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .current-time {
+            font-size: 20px;
+            color: #ecf0f1;
+        }
+        .content-wrapper {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            min-height: 0;
+        }
+        .calendar-section, .news-section {
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .calendar-section {
+            flex: 2;
+        }
+        .news-section {
+            flex: 1;
+        }
+        .section-title {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .calendar-container {
+            position: relative;
+            padding-bottom: 60%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 10px;
+            flex: 1;
+        }
+        .calendar-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
     </style>
 </head>
 <body>
@@ -16,9 +98,9 @@
 
         <div class="content-wrapper">
             <div class="calendar-section">
-                <h2 class="section-title">📅 Schedule</h2>
+                <h2 class="section-title">📅 Schedule & Holidays</h2>
                 <div class="calendar-container">
-                    <iframe src="https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&ctz=Asia%2FS" frameborder="0" scrolling="no"></iframe>
+                    <iframe src="https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&src=ko.south_korea%23holiday%40group.v.calendar.google.com&ctz=Asia%2FSeoul&mode=MONTH" frameborder="0" scrolling="no"></iframe>
                 </div>
             </div>
 
@@ -45,34 +127,8 @@
             document.getElementById('current-time').textContent = now.toLocaleString('ko-KR', options);
         }
 
-        // 뉴스 로드 함수 (NewsAPI + CORS 프록시 사용)
-        function loadNews() {
-            const newsContainer = document.getElementById("news-container");
-            const apiKey = "2eef7bab8e454ccab0f5ff4c15d3bf9a"; // 여기에 NewsAPI API 키를 넣으세요
-            const url = `https://cors-anywhere.herokuapp.com/https://newsapi.org/v2/top-headlines?country=kr&apiKey=${apiKey}`;
-
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    let newsHTML = "";
-
-                    data.articles.slice(0, 5).forEach((article) => { // 상위 5개 뉴스만 표시
-                        const title = article.title;
-                        const link = article.url;
-                        newsHTML += `<div class="news-item"><a href="${link}" target="_blank">${title}</a></div>`;
-                    });
-
-                    newsContainer.innerHTML = newsHTML;
-                })
-                .catch(error => {
-                    console.error("뉴스 로드 중 오류 발생:", error);
-                    newsContainer.innerHTML = "<p>뉴스를 불러오는 데 실패했습니다.</p>";
-                });
-        }
-
-        // 초기 로드 및 업데이트 주기 설정
+        // 초기 로드 및 시간 업데이트 주기 설정
         updateTime();
-        loadNews();
         setInterval(updateTime, 1000); // 1초마다 시간 업데이트
     </script>
 </body>
