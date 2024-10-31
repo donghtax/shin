@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>회사 공지사항</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 20px;
+        }
+        .company-name {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .current-time {
+            font-size: 20px;
+            color: #ecf0f1;
+        }
+        .content-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .section-title {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .notice-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .notice-item:last-child {
+            border-bottom: none;
+        }
+        .notice-title {
+            font-size: 18px;
+            color: #34495e;
+        }
+        .notice-date {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .schedule-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .schedule-item:last-child {
+            border-bottom: none;
+        }
+        .schedule-title {
+            color: #34495e;
+        }
+        .schedule-time {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .important {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="company-name">회사 공지사항</div>
+            <div class="current-time" id="current-time"></div>
+        </div>
+
+        <div class="content-section">
+            <h2 class="section-title">📢 주요 공지사항</h2>
+            <div class="notice-item important">
+                <div class="notice-title">🔥 2024년 하계 휴가 신청 안내</div>
+                <div class="notice-date">2024-10-31</div>
+            </div>
+            <div class="notice-item">
+                <div class="notice-title">10월 정기 안전 교육 실시 안내</div>
+                <div class="notice-date">2024-10-30</div>
+            </div>
+            <div class="notice-item">
+                <div class="notice-title">신규 프로젝트 킥오프 미팅 일정 공지</div>
+                <div class="notice-date">2024-10-29</div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2 class="section-title">📅 이번 주 주요 일정</h2>
+            <div class="schedule-item">
+                <span class="schedule-title">경영진 미팅</span>
+                <span class="schedule-time">11월 1일 10:00</span>
+            </div>
+            <div class="schedule-item">
+                <span class="schedule-title">4분기 실적 발표회</span>
+                <span class="schedule-time">11월 3일 14:00</span>
+            </div>
+            <div class="schedule-item">
+                <span class="schedule-title">팀 빌딩 워크샵</span>
+                <span class="schedule-time">11월 5일 13:00</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                weekday: 'long',
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            };
+            const timeString = now.toLocaleString('ko-KR', options);
+            document.getElementById('current-time').textContent = timeString;
+        }
+        
+        // 1초마다 시간 업데이트
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // 30분마다 페이지 자동 새로고침
+        setInterval(() => {
+            location.reload();
+        }, 1800000);
+    </script>
+</body>
+</html>
