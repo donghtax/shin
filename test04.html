@@ -1,1 +1,246 @@
 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Donghyun Tax Accounting Office</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 2160px;
+            width: 98%;
+            margin: 10px auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 98vh;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .company-name {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .current-time {
+            font-size: 32px;
+            color: #ecf0f1;
+            font-weight: bold;
+        }
+        .content-wrapper {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            min-height: 0;
+        }
+        .calendar-section {
+            flex: 2;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .news-section {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .section-title {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .news-container, .today-schedule {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .news-item, .event-item {
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        .news-item a, .event-item {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .news-item a:hover {
+            text-decoration: underline;
+        }
+        .calendar-iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="company-name">Donghyun Tax Accounting Office</div>
+            <div class="current-time" id="current-time"></div>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="calendar-section">
+                <h2 class="section-title">📅 Monthly Schedule & Holidays</h2>
+<iframe 
+    class="calendar-iframe"
+    src="https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&src=eunjuuu2%40gmail.com&src=8a4b3ad9ffdb68663b95a1a263441e4a5f3fe06775cdd31c729191a93cf18f58%40group.calendar.google.com&src=ko.south_korea%23holiday%40group.v.calendar.google.com&color=%23B1365F&color=%232F6309&ctz=Asia%2FSeoul&mode=MONTH" 
+    frameborder="0" 
+    scrolling="no">
+</iframe>
+            </div>
+
+            <div class="news-section">
+                <div class="today-schedule">
+                    <h2 class="section-title">📅 Today's Schedule</h2>
+                    <div id="today-events"></div>
+                </div>
+                <div class="news-container">
+                    <h2 class="section-title">📰 Tax-related News</h2>
+                    <div id="news-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = "AIzaSyBk3K41Abu-u2xn8591ERFUa2tc36gUXw0";
+        const calendarIdPersonal = "bbory.cpa@gmail.com";
+        const calendarIdTax = "8a4b3ad9ffdb68663b95a1a263441e4a5f3fe06775cdd31c729191a93cf18f58@group.calendar.google.com";
+
+        function updateTime() {
+            const now = new Date();
+            
+            // 날짜 포맷팅
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const date = String(now.getDate()).padStart(2, '0');
+            const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+            const dayName = dayNames[now.getDay()];
+            
+            // 시간 포맷팅
+            const hours = now.getHours();
+            const isAM = hours < 12;
+            const displayHours = String(isAM ? hours : hours - 12).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            // 최종 문자열 조합
+            const dateStr = `${year}/${month}/${date}(${dayName})`;
+            const timeStr = `${isAM ? '오전' : '오후'} ${displayHours}:${minutes}:${seconds}`;
+            
+            document.getElementById('current-time').textContent = `${dateStr} ${timeStr}`;
+        }
+
+        function loadNews() {
+            const newsContainer = document.getElementById("news-container");
+            const rssUrl = `https://news.google.com/rss/search?q=세무&hl=ko&gl=KR&ceid=KR:ko`;
+            const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    let newsHTML = "";
+                    data.items.slice(0, 10).forEach(item => {
+                        const title = item.title;
+                        const link = item.link;
+                        newsHTML += `<div class="news-item"><a href="${link}" target="_blank">${title}</a></div>`;
+                    });
+                    newsContainer.innerHTML = newsHTML;
+                })
+                .catch(error => {
+                    console.error("뉴스 로드 중 오류 발생:", error);
+                    newsContainer.innerHTML = "<p>뉴스를 불러오는 데 실패했습니다.</p>";
+                });
+        }
+
+        function loadTodayEvents() {
+            const todayEventsContainer = document.getElementById("today-events");
+            const today = new Date();
+            const timeMin = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+            const timeMax = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+
+const calendars = [
+    { id: 'bbory.cpa@gmail.com', name: '대표' },
+    { id: 'eunjuuu2@gmail.com', name: '이은주' },
+    { id: '8a4b3ad9ffdb68663b95a1a263441e4a5f3fe06775cdd31c729191a93cf18f58@group.calendar.google.com', name: '세무일정' },
+    { id: 'ko.south_korea#holiday@group.v.calendar.google.com', name: '공휴일' }
+];
+
+            Promise.all(calendars.map(calendar => 
+                fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendar.id)}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`)
+                    .then(response => response.json())
+                    .then(data => ({ ...data, calendarName: calendar.name }))
+                    .catch(error => {
+                        console.error(`Error fetching ${calendar.name} calendar:`, error);
+                        return { items: [], calendarName: calendar.name };
+                    })
+            ))
+            .then(results => {
+                let eventsHTML = "";
+                let hasEvents = false;
+
+                results.forEach(data => {
+                    if (data.items && data.items.length > 0) {
+                        hasEvents = true;
+                        data.items.forEach(event => {
+                            const eventTime = event.start.dateTime 
+                                ? new Date(event.start.dateTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) 
+                                : "종일";
+                            eventsHTML += `
+                                <div class="event-item">
+                                    <strong>${eventTime}</strong> - ${event.summary} 
+                                    <span style="color: #666; font-size: 0.9em">(${data.calendarName})</span>
+                                </div>`;
+                        });
+                    }
+                });
+
+                todayEventsContainer.innerHTML = hasEvents 
+                    ? eventsHTML 
+                    : "<p>오늘의 일정이 없습니다.</p>";
+            })
+            .catch(error => {
+                console.error("일정 로드 중 오류 발생:", error);
+                todayEventsContainer.innerHTML = "<p>일정을 불러오는 데 실패했습니다.</p>";
+            });
+        }
+
+        // 초기 로드 및 시간 업데이트 주기 설정
+        updateTime();
+        loadNews();
+        loadTodayEvents();
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
