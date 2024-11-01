@@ -99,6 +99,37 @@
             width: 100%;
             height: 100%;
         }
+        .weather-section {
+            flex: 0.8;
+            background: white;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .weather-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .weather-item:last-child {
+            border-bottom: none;
+        }
+        .weather-date {
+            font-weight: bold;
+            min-width: 80px;
+        }
+        .weather-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .weather-info span {
+            min-width: 60px;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -111,12 +142,12 @@
         <div class="content-wrapper">
             <div class="calendar-section">
                 <h2 class="section-title">📅 Monthly Schedule & Holidays</h2>
-<iframe 
-    class="calendar-iframe"
-    src="https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&src=eunjuuu2%40gmail.com&src=8a4b3ad9ffdb68663b95a1a263441e4a5f3fe06775cdd31c729191a93cf18f58%40group.calendar.google.com&src=ko.south_korea%23holiday%40group.v.calendar.google.com&color=%23B1365F&color=%232F6309&ctz=Asia%2FSeoul&mode=MONTH" 
-    frameborder="0" 
-    scrolling="no">
-</iframe>
+                <iframe 
+                    class="calendar-iframe"
+                    src="https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&src=eunjuuu2%40gmail.com&src=8a4b3ad9ffdb68663b95a1a263441e4a5f3fe06775cdd31c729191a93cf18f58%40group.calendar.google.com&src=ko.south_korea%23holiday%40group.v.calendar.google.com&color=%23B1365F&color=%232F6309&ctz=Asia%2FSeoul&mode=MONTH" 
+                    frameborder="0" 
+                    scrolling="no">
+                </iframe>
             </div>
 
             <div class="news-section">
@@ -124,6 +155,12 @@
                     <h2 class="section-title">📅 Today's Schedule</h2>
                     <div id="today-events"></div>
                 </div>
+
+                <div class="weather-section">
+                    <h2 class="section-title">🌤️ 풍납동 날씨</h2>
+                    <div id="weather-container"></div>
+                </div>
+
                 <div class="news-container">
                     <h2 class="section-title">📰 Tax-related News</h2>
                     <div id="news-container"></div>
@@ -133,32 +170,107 @@
     </div>
 
     <script>
-        const apiKey = "AIzaSyBk3K41Abu-u2xn8591ERFUa2tc36gUXw0";
+        const apiKey = "Dq2Ai7o+QAfIM1yNmRzrlhnMTJlmQb7Jkh65M0IzIrDAtZ3P0DMtKc0UVQPgtMvSTKB74CbzERLfxBBN0mwffw==";
         const calendarIdPersonal = "bbory.cpa@gmail.com";
         const calendarIdTax = "8a4b3ad9ffdb68663b95a1a263441e4a5f3fe06775cdd31c729191a93cf18f58@group.calendar.google.com";
 
         function updateTime() {
             const now = new Date();
-            
-            // 날짜 포맷팅
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
             const date = String(now.getDate()).padStart(2, '0');
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
             const dayName = dayNames[now.getDay()];
-            
-            // 시간 포맷팅
             const hours = now.getHours();
             const isAM = hours < 12;
             const displayHours = String(isAM ? hours : hours - 12).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
             
-            // 최종 문자열 조합
             const dateStr = `${year}/${month}/${date}(${dayName})`;
             const timeStr = `${isAM ? '오전' : '오후'} ${displayHours}:${minutes}:${seconds}`;
             
             document.getElementById('current-time').textContent = `${dateStr} ${timeStr}`;
+        }
+
+        async function loadWeather() {
+            const nx = 62;
+            const ny = 126;
+            const today = new Date();
+            const baseDate = today.toISOString().split('T')[0].replace(/-/g, '');
+            const baseTime = '0600';
+
+            try {
+                const response = await fetch(
+                    `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst` +
+                    `?serviceKey=${apiKey}` +
+                    `&numOfRows=1000` +
+                    `&pageNo=1` +
+                    `&base_date=${baseDate}` +
+                    `&base_time=${baseTime}` +
+                    `&nx=${nx}` +
+                    `&ny=${ny}` +
+                    `&dataType=JSON`
+                );
+                
+                const data = await response.json();
+                const items = data.response.body.items.item;
+
+                let weatherByDay = {};
+                items.forEach(item => {
+                    const forecastDate = item.fcstDate;
+                    if (!weatherByDay[forecastDate]) {
+                        weatherByDay[forecastDate] = {};
+                    }
+                    weatherByDay[forecastDate][item.category] = item.fcstValue;
+                });
+
+                let weatherHTML = '';
+                Object.keys(weatherByDay).slice(0, 5).forEach(date => {
+                    const weather = weatherByDay[date];
+                    const dateObj = new Date(date.substring(0,4), parseInt(date.substring(4,6))-1, date.substring(6,8));
+                    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                    
+                    weatherHTML += `
+                        <div class="weather-item">
+                            <div class="weather-date">
+                                ${parseInt(date.substring(4,6))}/${parseInt(date.substring(6,8))} 
+                                ${dayNames[dateObj.getDay()]}
+                            </div>
+                            <div class="weather-info">
+                                <span>${weather.TMP}°C</span>
+                                <span>${getWeatherDescription(weather.SKY, weather.PTY)}</span>
+                                <span>강수확률 ${weather.POP}%</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('weather-container').innerHTML = weatherHTML;
+            } catch (error) {
+                console.error("날씨 데이터 로드 중 오류 발생:", error);
+                document.getElementById('weather-container').innerHTML = 
+                    "<p>날씨 정보를 불러오는데 실패했습니다.</p>";
+            }
+        }
+
+        function getWeatherDescription(sky, pty) {
+            if (pty !== '0') {
+                const ptyMap = {
+                    '1': '비',
+                    '2': '비/눈',
+                    '3': '눈',
+                    '4': '소나기'
+                };
+                return ptyMap[pty] || '강수';
+            }
+            
+            const skyMap = {
+                '1': '맑음',
+                '3': '구름많음',
+                '4': '흐림'
+            };
+            return skyMap[sky] || '알 수 없음';
         }
 
         function loadNews() {
@@ -189,12 +301,11 @@
             const timeMin = new Date(today.setHours(0, 0, 0, 0)).toISOString();
             const timeMax = new Date(today.setHours(23, 59, 59, 999)).toISOString();
 
-const calendars = [
-    { id: 'bbory.cpa@gmail.com', name: '대표' },
-    { id: 'eunjuuu2@gmail.com', name: '이은주' },
-    { id: '8a4b3ad9ffdb68663b95a1a263441e4a5f3fe06775cdd31c729191a93cf18f58@group.calendar.google.com', name: '세무일정' },
-    { id: 'ko.south_korea#holiday@group.v.calendar.google.com', name: '공휴일' }
-];
+            const calendars = [
+                { id: calendarIdPersonal, name: 'Personal' },
+                { id: calendarIdTax, name: 'Tax Calendar' },
+                { id: 'ko.south_korea#holiday@group.v.calendar.google.com', name: 'Holidays' }
+            ];
 
             Promise.all(calendars.map(calendar => 
                 fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendar.id)}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`)
@@ -235,11 +346,13 @@ const calendars = [
             });
         }
 
-        // 초기 로드 및 시간 업데이트 주기 설정
+        // 초기 로드 및 주기적 업데이트 설정
         updateTime();
+        loadWeather();
         loadNews();
         loadTodayEvents();
-        setInterval(updateTime, 1000);
-    </script>
-</body>
-</html>
+        
+        // 업데이트 주기 설정
+        setInterval(updateTime, 1000);    // 1초마다 시간 업데이트
+        setInterval(loadWeather, 600000); // 10분마다 날씨 업데이트
+        setInterval(loadNews, 600000);    // 10분마다 뉴스 업데이트
