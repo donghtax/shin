@@ -46,6 +46,7 @@
         }
         .content-wrapper {
             display: flex;
+            flex-direction: column;
             gap: 20px;
             flex: 1;
             margin-top: 70px;
@@ -53,27 +54,26 @@
             height: calc(100vh - 90px);
         }
         .calendar-section {
-            flex: 2;
+            width: 100%;
+            height: 65vh;
             background: white;
             border-radius: 10px;
             padding: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
         }
-        .news-section {
+        .bottom-section {
+            display: flex;
+            gap: 20px;
+            height: 30vh;
+        }
+        .today-schedule, .weather-section, .news-container {
             flex: 1;
             background: white;
             border-radius: 10px;
             padding: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            min-width: 300px;
-            max-width: 400px;
             overflow-y: auto;
+            min-width: 0; /* 추가: flexbox 아이템이 너무 커지는 것 방지 */
         }
         .section-title {
             color: #2c3e50;
@@ -83,47 +83,24 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
-        }
-        .today-schedule {
-            flex: 3;
-            min-height: 300px;
+            position: sticky;
+            top: 0;
             background: white;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .weather-section {
-            flex: 1;
-            background: white;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .news-container {
-            flex: 2;
-            max-height: 300px;
-            background: white;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            overflow-y: auto;
+            z-index: 10;
         }
         .calendar-iframe {
             border: none;
             width: 100%;
-            height: 100%;
-            min-height: 600px;
+            height: calc(100% - 40px);
+            min-height: 400px;
         }
         .weather-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px;
+            padding: 8px;
             border-bottom: 1px solid #eee;
         }
         .weather-item:last-child {
@@ -131,21 +108,23 @@
         }
         .weather-date {
             font-weight: bold;
-            min-width: 80px;
+            min-width: 70px;
+            font-size: 13px;
         }
         .weather-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
+            font-size: 13px;
         }
         .weather-info span {
-            min-width: 60px;
+            min-width: 50px;
             text-align: right;
         }
         .news-item, .event-item {
-            margin-bottom: 8px;
-            font-size: 14px;
-            padding: 8px;
+            margin-bottom: 6px;
+            font-size: 13px;
+            padding: 6px;
             border-bottom: 1px solid #eee;
         }
         .news-item:nth-child(n+6) {
@@ -167,7 +146,29 @@
             background: #fdf2f2;
             border-radius: 4px;
             margin: 5px 0;
-            font-size: 14px;
+            font-size: 13px;
+        }
+        /* 스크롤바 스타일링 */
+        .today-schedule::-webkit-scrollbar,
+        .weather-section::-webkit-scrollbar,
+        .news-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .today-schedule::-webkit-scrollbar-track,
+        .weather-section::-webkit-scrollbar-track,
+        .news-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .today-schedule::-webkit-scrollbar-thumb,
+        .weather-section::-webkit-scrollbar-thumb,
+        .news-container::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 3px;
+        }
+        .today-schedule::-webkit-scrollbar-thumb:hover,
+        .weather-section::-webkit-scrollbar-thumb:hover,
+        .news-container::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
         }
     </style>
 </head>
@@ -188,8 +189,8 @@
                     scrolling="no">
                 </iframe>
             </div>
-
-            <div class="news-section">
+            
+            <div class="bottom-section">
                 <div class="today-schedule">
                     <h2 class="section-title">📅 Today's Schedule</h2>
                     <div id="today-events"></div>
