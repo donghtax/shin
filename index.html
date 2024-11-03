@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -47,7 +48,7 @@
         .content-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 10px;
             flex: 1;
             margin-top: 70px;
             padding: 10px;
@@ -55,76 +56,97 @@
         }
         .calendar-section {
             width: 100%;
-            height: 65vh;
+            height: 75vh;
             background: white;
             border-radius: 10px;
             padding: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        .calendar-iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+        }
         .bottom-section {
             display: flex;
             gap: 20px;
-            height: 30vh;
+            height: 20vh;
         }
-        .today-schedule, .weather-section, .news-container {
+        .schedule-section {
+            display: flex;
+            gap: 10px;
+            flex: 2;
+        }
+        .today-schedule, .tomorrow-schedule {
             flex: 1;
             background: white;
             border-radius: 10px;
             padding: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             overflow-y: auto;
-            min-width: 0; /* 추가: flexbox 아이템이 너무 커지는 것 방지 */
+        }
+        .weather-section {
+            flex: 0.6;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        .news-container {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
         }
         .section-title {
             color: #2c3e50;
             border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
-            margin: 0 0 10px 0;
+            padding-bottom: 3px;
+            margin: 0 0 8px 0;
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             position: sticky;
             top: 0;
             background: white;
             z-index: 10;
         }
-        .calendar-iframe {
-            border: none;
-            width: 100%;
-            height: calc(100% - 40px);
-            min-height: 400px;
-        }
         .weather-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 8px;
+            padding: 5px;
             border-bottom: 1px solid #eee;
+            font-size: 12px;
         }
         .weather-item:last-child {
             border-bottom: none;
         }
         .weather-date {
             font-weight: bold;
-            min-width: 70px;
-            font-size: 13px;
+            min-width: 60px;
+            font-size: 12px;
         }
         .weather-info {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 13px;
+            gap: 8px;
+            font-size: 12px;
         }
         .weather-info span {
-            min-width: 50px;
+            min-width: 45px;
             text-align: right;
         }
         .news-item, .event-item {
-            margin-bottom: 6px;
-            font-size: 13px;
-            padding: 6px;
+            margin-bottom: 5px;
+            font-size: 12px;
+            padding: 5px;
             border-bottom: 1px solid #eee;
         }
         .news-item:nth-child(n+6) {
@@ -142,32 +164,23 @@
         }
         .error-message {
             color: #e74c3c;
-            padding: 10px;
+            padding: 8px;
             background: #fdf2f2;
             border-radius: 4px;
             margin: 5px 0;
-            font-size: 13px;
+            font-size: 12px;
         }
-        /* 스크롤바 스타일링 */
-        .today-schedule::-webkit-scrollbar,
-        .weather-section::-webkit-scrollbar,
-        .news-container::-webkit-scrollbar {
+        ::-webkit-scrollbar {
             width: 6px;
         }
-        .today-schedule::-webkit-scrollbar-track,
-        .weather-section::-webkit-scrollbar-track,
-        .news-container::-webkit-scrollbar-track {
+        ::-webkit-scrollbar-track {
             background: #f1f1f1;
         }
-        .today-schedule::-webkit-scrollbar-thumb,
-        .weather-section::-webkit-scrollbar-thumb,
-        .news-container::-webkit-scrollbar-thumb {
+        ::-webkit-scrollbar-thumb {
             background: #cbd5e0;
             border-radius: 3px;
         }
-        .today-schedule::-webkit-scrollbar-thumb:hover,
-        .weather-section::-webkit-scrollbar-thumb:hover,
-        .news-container::-webkit-scrollbar-thumb:hover {
+        ::-webkit-scrollbar-thumb:hover {
             background: #a0aec0;
         }
     </style>
@@ -181,19 +194,24 @@
 
         <div class="content-wrapper">
             <div class="calendar-section">
-                <h2 class="section-title">📅 Monthly Schedule & Holidays</h2>
                 <iframe 
                     class="calendar-iframe"
-                    src="https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&src=eunjuuu2%40gmail.com&src=8a4b3ad9ffdb68663b95a1a263441e4a5f3fe06775cdd31c729191a93cf18f58%40group.calendar.google.com&src=ko.south_korea%23holiday%40group.v.calendar.google.com&color=%23B1365F&color=%232F6309&ctz=Asia%2FSeoul&mode=MONTH" 
+                    src="https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&src=eunjuuu2%40gmail.com&src=8a4b3ad9ffdb68663b95a1a263441e4a5f3fe06775cdd31c729191a93cf18f58%40group.calendar.google.com&src=ko.south_korea%23holiday%40group.v.calendar.google.com&color=%23B1365F&color=%232F6309&ctz=Asia%2FSeoul&mode=MONTH&showTitle=0" 
                     frameborder="0" 
                     scrolling="no">
                 </iframe>
             </div>
             
             <div class="bottom-section">
-                <div class="today-schedule">
-                    <h2 class="section-title">📅 Today's Schedule</h2>
-                    <div id="today-events"></div>
+                <div class="schedule-section">
+                    <div class="today-schedule">
+                        <h2 class="section-title">📅 Today's Schedule</h2>
+                        <div id="today-events"></div>
+                    </div>
+                    <div class="tomorrow-schedule">
+                        <h2 class="section-title">📅 Tomorrow's Schedule</h2>
+                        <div id="tomorrow-events"></div>
+                    </div>
                 </div>
 
                 <div class="weather-section">
@@ -277,7 +295,7 @@
                             <div class="weather-info">
                                 <span>${weather.TMP || "-"}°C</span>
                                 <span>${getWeatherDescription(weather.SKY, weather.PTY)}</span>
-                                <span>강수 ${weather.POP || 0}%</span>
+                                <span>${weather.POP || 0}%</span>
                             </div>
                         </div>
                     `;
@@ -341,13 +359,12 @@
             }
         }
 
-        async function loadTodayEvents() {
-            const todayEventsContainer = document.getElementById("today-events");
+        async function loadEvents(containerId, date) {
+            const eventsContainer = document.getElementById(containerId);
             try {
-                todayEventsContainer.innerHTML = "<div>일정을 불러오는 중...</div>";
-                const today = new Date();
-                const timeMin = new Date(today.setHours(0, 0, 0, 0)).toISOString();
-                const timeMax = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+                eventsContainer.innerHTML = "<div>일정을 불러오는 중...</div>";
+                const timeMin = new Date(date.setHours(0, 0, 0, 0)).toISOString();
+                const timeMax = new Date(date.setHours(23, 59, 59, 999)).toISOString();
 
                 const calendars = [
                     { id: "bbory.cpa@gmail.com", name: "대표" },
@@ -384,14 +401,24 @@
                     }
                 }
 
-                todayEventsContainer.innerHTML = hasEvents 
+                eventsContainer.innerHTML = hasEvents 
                     ? eventsHTML 
-                    : "<div>오늘의 일정이 없습니다.</div>";
+                    : "<div>일정이 없습니다.</div>";
 
             } catch (error) {
                 console.error("일정 로드 중 오류:", error);
-                todayEventsContainer.innerHTML = "<div class='error-message'>일정을 불러오는데 실패했습니다.</div>";
+                eventsContainer.innerHTML = "<div class='error-message'>일정을 불러오는데 실패했습니다.</div>";
             }
+        }
+
+        function loadTodayEvents() {
+            loadEvents("today-events", new Date());
+        }
+
+        function loadTomorrowEvents() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            loadEvents("tomorrow-events", tomorrow);
         }
 
         // 초기 로드
@@ -399,6 +426,7 @@
         loadWeather();
         loadNews();
         loadTodayEvents();
+        loadTomorrowEvents();
         
         // 업데이트 주기 설정
         setInterval(updateTime, 1000);    // 1초마다 시간 업데이트
