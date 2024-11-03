@@ -1,1 +1,437 @@
 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Donghyun Tax Accounting Office</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f8f9fa;
+        }
+        .container {
+            max-width: 2160px;
+            width: 98%;
+            margin: 0 auto;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+        .company-name {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .current-time {
+            font-size: 32px;
+            color: #ecf0f1;
+            font-weight: bold;
+        }
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+            margin-top: 70px;
+            padding: 10px;
+            height: calc(100vh - 90px);
+        }
+        .calendar-section {
+            width: 100%;
+            height: 75vh;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .calendar-iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+        }
+        .bottom-section {
+            display: flex;
+            gap: 20px;
+            height: 20vh;
+        }
+        .schedule-section {
+            display: flex;
+            gap: 10px;
+            flex: 2;
+        }
+        .today-schedule, .tomorrow-schedule {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        .weather-section {
+            flex: 0.6;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        .news-container {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        .section-title {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 3px;
+            margin: 0 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+        .weather-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+        }
+        .weather-item:last-child {
+            border-bottom: none;
+        }
+        .weather-date {
+            font-weight: bold;
+            min-width: 60px;
+            font-size: 12px;
+        }
+        .weather-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+        .weather-info span {
+            min-width: 45px;
+            text-align: right;
+        }
+        .news-item, .event-item {
+            margin-bottom: 5px;
+            font-size: 12px;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .news-item:nth-child(n+6) {
+            display: none;
+        }
+        .news-item:last-child, .event-item:last-child {
+            border-bottom: none;
+        }
+        .news-item a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .news-item a:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            color: #e74c3c;
+            padding: 8px;
+            background: #fdf2f2;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="company-name">Donghyun Tax Accounting Office</div>
+            <div class="current-time" id="current-time"></div>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="calendar-section">
+                <iframe 
+                    class="calendar-iframe"
+                    src="https://calendar.google.com/calendar/embed?src=bbory.cpa%40gmail.com&src=eunjuuu2%40gmail.com&src=8a4b3ad9ffdb68663b95a1a263441e4a5f3fe06775cdd31c729191a93cf18f58%40group.calendar.google.com&src=ko.south_korea%23holiday%40group.v.calendar.google.com&color=%23B1365F&color=%232F6309&ctz=Asia%2FSeoul&mode=MONTH&showTitle=0" 
+                    frameborder="0" 
+                    scrolling="no">
+                </iframe>
+            </div>
+            
+            <div class="bottom-section">
+                <div class="schedule-section">
+                    <div class="today-schedule">
+                        <h2 class="section-title">📅 Today's Schedule</h2>
+                        <div id="today-events"></div>
+                    </div>
+                    <div class="tomorrow-schedule">
+                        <h2 class="section-title">📅 Tomorrow's Schedule</h2>
+                        <div id="tomorrow-events"></div>
+                    </div>
+                </div>
+
+                <div class="weather-section">
+                    <h2 class="section-title">🌤️ 풍납동 날씨</h2>
+                    <div id="weather-container"></div>
+                </div>
+
+                <div class="news-container">
+                    <h2 class="section-title">📰 Tax-related News</h2>
+                    <div id="news-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CALENDAR_API_KEY = "AIzaSyBk3K41Abu-u2xn8591ERFUa2tc36gUXw0";
+        const WEATHER_API_KEY = "Dq2Ai7o+QAfIM1yNmRzrlhnMTJlmQb7Jkh65M0IzIrDAtZ3P0DMtKc0UVQPgtMvSTKB74CbzERLfxBBN0mwffw==";
+
+        function updateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, "0");
+            const date = String(now.getDate()).padStart(2, "0");
+            const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+            const dayName = dayNames[now.getDay()];
+            const hours = now.getHours();
+            const isAM = hours < 12;
+            const displayHours = String(isAM ? hours : hours - 12).padStart(2, "0");
+            const minutes = String(now.getMinutes()).padStart(2, "0");
+            const seconds = String(now.getSeconds()).padStart(2, "0");
+            
+            const dateStr = `${year}/${month}/${date}(${dayName})`;
+            const timeStr = `${isAM ? "오전" : "오후"} ${displayHours}:${minutes}:${seconds}`;
+            
+            document.getElementById("current-time").textContent = `${dateStr} ${timeStr}`;
+        }
+
+        async function loadWeather() {
+            const weatherContainer = document.getElementById("weather-container");
+            try {
+                weatherContainer.innerHTML = "<div>날씨 정보를 불러오는 중...</div>";
+                const nx = 62;
+                const ny = 126;
+                const today = new Date();
+                const baseDate = today.toISOString().split("T")[0].replace(/-/g, "");
+                const baseTime = "0500";
+
+                const weatherUrl = `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=${encodeURIComponent(WEATHER_API_KEY)}&numOfRows=1000&pageNo=1&base_date=${baseDate}&base_time=${baseTime}&nx=${nx}&ny=${ny}&dataType=JSON`;
+                
+                const response = await fetch(weatherUrl);
+                const data = await response.json();
+
+                if (!data.response || !data.response.body || !data.response.body.items) {
+                    throw new Error("날씨 데이터 형식이 올바르지 않습니다");
+                }
+
+                const items = data.response.body.items.item;
+                let weatherByDay = {};
+                
+                items.forEach(item => {
+                    const forecastDate = item.fcstDate;
+                    if (!weatherByDay[forecastDate]) {
+                        weatherByDay[forecastDate] = {};
+                    }
+                    weatherByDay[forecastDate][item.category] = item.fcstValue;
+                });
+
+                let weatherHTML = "";
+                Object.keys(weatherByDay).slice(0, 5).forEach(date => {
+                    const weather = weatherByDay[date];
+                    const dateObj = new Date(date.substring(0,4), parseInt(date.substring(4,6))-1, date.substring(6,8));
+                    const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+                    
+                    weatherHTML += `
+                        <div class="weather-item">
+                            <div class="weather-date">
+                                ${parseInt(date.substring(4,6))}/${parseInt(date.substring(6,8))} 
+                                ${dayNames[dateObj.getDay()]}
+                            </div>
+                            <div class="weather-info">
+                                <span>${weather.TMP || "-"}°C</span>
+                                <span>${getWeatherDescription(weather.SKY, weather.PTY)}</span>
+                                <span>${weather.POP || 0}%</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                weatherContainer.innerHTML = weatherHTML || "<div>날씨 정보가 없습니다.</div>";
+            } catch (error) {
+                console.error("날씨 데이터 로드 중 오류:", error);
+                weatherContainer.innerHTML = "<div class='error-message'>날씨 정보를 불러오는데 실패했습니다.</div>";
+            }
+        }
+
+        function getWeatherDescription(sky, pty) {
+            if (!sky || !pty) return "데이터 없음";
+            
+            if (pty !== "0") {
+                const ptyMap = {
+                    "1": "비",
+                    "2": "비/눈",
+                    "3": "눈",
+                    "4": "소나기"
+                };
+                return ptyMap[pty] || "강수";
+            }
+            
+            const skyMap = {
+                "1": "맑음",
+                "3": "구름많음",
+                "4": "흐림"
+            };
+            return skyMap[sky] || "알 수 없음";
+        }
+
+        async function loadNews() {
+            const newsContainer = document.getElementById("news-container");
+            try {
+                newsContainer.innerHTML = "<div>뉴스를 불러오는 중...</div>";
+                const rssUrl = "https://news.google.com/rss/search?q=세무&hl=ko&gl=KR&ceid=KR:ko";
+                const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (!data.items || !data.items.length) {
+                    throw new Error("뉴스 데이터가 없습니다");
+                }
+
+                let newsHTML = "";
+                data.items.slice(0, 5).forEach(item => {
+                    newsHTML += `
+                        <div class="news-item">
+                            <a href="${item.link}" target="_blank">${item.title}</a>
+                        </div>
+                    `;
+                });
+
+                newsContainer.innerHTML = newsHTML;
+            } catch (error) {
+                console.error("뉴스 로드 중 오류:", error);
+                newsContainer.innerHTML = "<div class='error-message'>뉴스를 불러오는데 실패했습니다.</div>";
+            }
+        }
+
+        async function loadEvents(containerId, date) {
+            const eventsContainer = document.getElementById(containerId);
+            try {
+                eventsContainer.innerHTML = "<div>일정을 불러오는 중...</div>";
+                const timeMin = new Date(date.setHours(0, 0, 0, 0)).toISOString();
+                const timeMax = new Date(date.setHours(23, 59, 59, 999)).toISOString();
+
+                const calendars = [
+                    { id: "bbory.cpa@gmail.com", name: "대표" },
+                    { id: "eunjuuu2@gmail.com", name: "이은주" },
+                    { id: "8a4b3ad9ffdb68663b95a1a263441e4a5f3fe06775cdd31c729191a93cf18f58@group.calendar.google.com", name: "세무일정" },
+                    { id: "ko.south_korea#holiday@group.v.calendar.google.com", name: "공휴일" }
+                ];
+
+                let eventsHTML = "";
+                let hasEvents = false;
+
+                for (const calendar of calendars) {
+                    try {
+                        const calendarUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendar.id)}/events?key=${CALENDAR_API_KEY}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;
+                        const response = await fetch(calendarUrl);
+                        const data = await response.json();
+
+                        if (data.items && data.items.length > 0) {
+                            hasEvents = true;
+                            data.items.forEach(event => {
+                                const eventTime = event.start.dateTime 
+                                    ? new Date(event.start.dateTime).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }) 
+                                    : "종일";
+                                eventsHTML += `
+                                    <div class="event-item">
+                                        <strong>${eventTime}</strong> - ${event.summary}
+                                        <span style="color: #666; font-size: 0.9em">(${calendar.name})</span>
+                                    </div>
+                                `;
+                            });
+                        }
+                    } catch (error) {
+                        console.error(`${calendar.name} 캘린더 로드 중 오류:`, error);
+                    }
+                }
+
+                eventsContainer.innerHTML = hasEvents 
+                    ? eventsHTML 
+                    : "<div>일정이 없습니다.</div>";
+
+            } catch (error) {
+                console.error("일정 로드 중 오류:", error);
+                eventsContainer.innerHTML = "<div class='error-message'>일정을 불러오는데 실패했습니다.</div>";
+            }
+        }
+
+        function loadTodayEvents() {
+            loadEvents("today-events", new Date());
+        }
+
+        function loadTomorrowEvents() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            loadEvents("tomorrow-events", tomorrow);
+        }
+
+        // 초기 로드
+        updateTime();
+        loadWeather();
+        loadNews();
+        loadTodayEvents();
+        loadTomorrowEvents();
+        
+        // 업데이트 주기 설정
+        setInterval(updateTime, 1000);    // 1초마다 시간 업데이트
+        setInterval(loadWeather, 600000); // 10분마다 날씨 업데이트
+        setInterval(loadNews, 600000);    // 10분마다 뉴스 업데이트
+    </script>
+</body>
+</html>
